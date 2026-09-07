@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Majo — Una carta en píxeles</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Caveat:wght@400..700&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #f0e6d2;
+  --bg-soft: #e8dcc0;
+  --ink: #1f0f12;
+  --ink-soft: rgba(31, 15, 18, 0.7);
+  --wine: #6b1d2a;
+  --rose: #c4888e;
+  --gold: #9c7841;
+  --paper: rgba(255, 250, 240, 0.65);
+  --line: rgba(31, 15, 18, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Newsreader', Georgia, serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01";
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(108, 29, 42, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(156, 120, 65, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(196, 136, 142, 0.04) 0%, transparent 60%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+#petals { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+.petal {
+  position: absolute;
+  top: -5vh;
+  opacity: 0;
+  animation: drift linear infinite;
+  user-select: none;
+}
+@keyframes drift {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.4; }
+  100% { transform: translate3d(120px, 110vh, 0) rotate(540deg); opacity: 0; }
+}
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 5rem 2rem;
+  position: relative;
+  z-index: 4;
+}
+
+.hero-eyebrow {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--wine);
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  animation: rise 1.4s 0.2s cubic-bezier(.2,.7,.3,1) forwards;
+}
+
+.hero-title {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 300;
+  font-size: clamp(4rem, 16vw, 13rem);
+  line-height: 0.85;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  opacity: 0;
+  animation: rise 1.6s 0.4s cubic-bezier(.2,.7,.3,1) forwards;
+}
+
+.hero-title .name {
+  display: block;
+  font-style: italic;
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+  color: var(--wine);
+  margin-top: -0.1em;
+}
+
+.hero-sub {
+  margin-top: 3rem;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  max-width: 32rem;
+  color: var(--ink-soft);
+  opacity: 0;
+  animation: rise 1.6s 0.8s cubic-bezier(.2,.7,.3,1) forwards;
+}
+
+.hero-meta {
+  margin-top: 4rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--wine);
+  opacity: 0;
+  animation: rise 1.6s 1.1s cubic-bezier(.2,.7,.3,1) forwards;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0;
+  animation: rise 1.6s 1.4s cubic-bezier(.2,.7,.3,1) forwards, pulse 2.4s 2.6s ease-in-out infinite;
+}
+.scroll-hint::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 30px;
+  background: var(--ink-soft);
+  margin: 0.8rem auto 0;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 0.9; }
+}
+
+.section {
+  padding: 9rem 2rem;
+  max-width: 78rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 4;
+}
+
+.intro {
+  text-align: center;
+  padding: 7rem 2rem;
+  max-width: 52rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 4;
+}
+
+.intro blockquote {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.7rem, 3.6vw, 2.7rem);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.intro blockquote::before, .intro blockquote::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: var(--wine);
+  margin: 2.5rem auto;
+  opacity: 0.5;
+}
+
+.intro cite {
+  display: block;
+  margin-top: 2rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--wine);
+  font-style: normal;
+}
+
+.counter {
+  text-align: center;
+  padding: 6rem 2rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, transparent, rgba(212, 197, 160, 0.18), transparent);
+  position: relative;
+  z-index: 4;
+}
+
+.counter-eyebrow {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.15em;
+}
+
+.counter-since {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--wine);
+  margin-bottom: 3rem;
+}
+
+.counter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.counter-item {
+  position: relative;
+}
+
+.counter-item::after {
+  content: "";
+  position: absolute;
+  right: -1rem;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--line);
+}
+.counter-item:last-child::after { display: none; }
+
+.counter-num {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  line-height: 1;
+  color: var(--wine);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-label {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 0.6rem;
+}
+
+.section-num {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-size: 0.95rem;
+  letter-spacing: 0.35em;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.section-title em {
+  font-style: italic;
+  color: var(--wine);
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+}
+
+.section-sub {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  text-align: center;
+  color: var(--ink-soft);
+  max-width: 32rem;
+  margin: 0 auto 5rem;
+}
+
+.timeline {
+  padding: 9rem 2rem;
+  position: relative;
+  z-index: 4;
+}
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5rem;
+  max-width: 58rem;
+  margin: 0 auto;
+}
+
+.event {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 3rem;
+  padding-bottom: 3.5rem;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+.event:last-child { border-bottom: none; }
+
+.event::before {
+  content: "";
+  position: absolute;
+  left: 8.7rem;
+  top: 0.8rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--wine);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--wine);
+}
+
+.event-date {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 400;
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding-top: 0.3rem;
+  text-align: right;
+  padding-right: 1.5rem;
+}
+
+.event-content h3 {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 400;
+  font-size: 1.7rem;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+
+.event-content p {
+  font-family: 'Newsreader', serif;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.letter-section {
+  padding: 9rem 2rem;
+  background: linear-gradient(180deg, transparent, rgba(212, 197, 160, 0.22), transparent);
+  position: relative;
+  z-index: 4;
+}
+
+.letter-container {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 4.5rem 3.5rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 30px 80px -30px rgba(31, 15, 18, 0.18),
+    0 0 0 1px rgba(255, 250, 240, 0.5) inset;
+  position: relative;
+  backdrop-filter: blur(2px);
+}
+
+.letter-container::before {
+  content: "❦";
+  position: absolute;
+  top: -0.7em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  padding: 0 1.5rem;
+  font-size: 1.5rem;
+  color: var(--wine);
+}
+
+.letter-greeting {
+  font-family: 'Caveat', cursive;
+  font-size: 2.2rem;
+  color: var(--wine);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.letter-body {
+  font-family: 'Caveat', cursive;
+  font-size: 1.45rem;
+  line-height: 1.85;
+  color: var(--ink);
+  min-height: 240px;
+  white-space: pre-wrap;
+}
+
+.letter-body .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.3em;
+  background: var(--wine);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.letter-sign {
+  margin-top: 2.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.7rem;
+  color: var(--wine);
+  text-align: right;
+}
+
+.reasons {
+  padding: 9rem 2rem;
+  position: relative;
+  z-index: 4;
+}
+
+.reasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.reason-card {
+  padding: 2.2rem 1.8rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  text-align: left;
+  position: relative;
+  transition: transform 0.5s cubic-bezier(.2,.7,.3,1), background 0.5s ease, box-shadow 0.5s ease;
+  overflow: hidden;
+}
+.reason-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(196, 136, 142, 0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.reason-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 250, 240, 0.95);
+  box-shadow: 0 20px 40px -20px rgba(31, 15, 18, 0.15);
+}
+.reason-card:hover::before { opacity: 1; }
+
+.reason-num {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.25em;
+  margin-bottom: 1rem;
+  display: block;
+  position: relative;
+}
+.reason-text {
+  font-family: 'Newsreader', serif;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  color: var(--ink);
+  position: relative;
+}
+.reason-text em {
+  font-style: italic;
+  color: var(--wine);
+}
+
+.closing {
+  padding: 10rem 2rem;
+  text-align: center;
+  max-width: 52rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 4;
+}
+
+.closing-rule {
+  display: block;
+  width: 80px;
+  height: 1px;
+  background: var(--wine);
+  margin: 0 auto 4rem;
+  opacity: 0.5;
+}
+
+.closing-text {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: 3rem;
+}
+
+.closing-text em {
+  font-style: normal;
+  font-variation-settings: "opsz" 144;
+  color: var(--wine);
+}
+
+.closing-sign {
+  font-family: 'Caveat', cursive;
+  font-size: 1.9rem;
+  color: var(--wine);
+}
+
+.closing-name {
+  margin-top: 0.4rem;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.secret {
+  padding: 7rem 2rem 3rem;
+  text-align: center;
+  position: relative;
+  z-index: 4;
+}
+
+.secret-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 1.8rem;
+  color: var(--wine);
+  cursor: pointer;
+  transition: transform 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+  user-select: none;
+}
+.secret-orb:hover {
+  transform: scale(1.08);
+  background: rgba(196, 136, 142, 0.18);
+  box-shadow: 0 10px 30px -10px rgba(107, 29, 42, 0.3);
+}
+.secret-orb::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid var(--wine);
+  opacity: 0;
+  animation: ping 2.4s ease-out infinite;
+}
+@keyframes ping {
+  0%   { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.secret-hint {
+  margin-top: 1.5rem;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+.secret-message {
+  max-width: 38rem;
+  margin: 3rem auto 0;
+  padding: 2.5rem 2rem;
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  line-height: 1.5;
+  color: var(--wine);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  pointer-events: none;
+}
+.secret-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+footer {
+  padding: 3rem 2rem 4rem;
+  text-align: center;
+  border-top: 1px solid var(--line);
+  position: relative;
+  z-index: 4;
+}
+
+footer p {
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--wine);
+  max-width: 30rem;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+footer .small {
+  margin-top: 1rem;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0.6;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1.1s cubic-bezier(.2,.7,.3,1), transform 1.1s cubic-bezier(.2,.7,.3,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 720px) {
+  .section, .timeline, .letter-section, .reasons, .closing { padding: 6rem 1.5rem; }
+  .counter-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
+  .counter-item:nth-child(2)::after { display: none; }
+  .event { grid-template-columns: 1fr; gap: 0.6rem; }
+  .event::before { display: none; }
+  .event-date { text-align: left; padding-right: 0; }
+  .letter-container { padding: 3rem 2rem; }
+  .letter-body { font-size: 1.3rem; }
+  .reasons-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="petals" aria-hidden="true"></div>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="hero-eyebrow">Una carta en píxeles</div>
+  <h1 class="hero-title">
+    Para
+    <span class="name">Majo</span>
+  </h1>
+  <p class="hero-sub">Esto no es un sitio web. Es una carta escrita en código, en colores y en todo lo que aún no sé decirte con palabras.</p>
+  <div class="hero-meta">Hecho con las manos temblando — septiembre, 2026</div>
+ 
+</section>
+
+<!-- ========== INTRO ========== -->
+<section class="intro reveal">
+  <blockquote>
+    Hay personas que llegan a tu vida sin hacer ruido, y de pronto te das cuenta de que sin ellas el mundo suena distinto.
+  </blockquote>
+  <cite>— de alguien que te quiere más de lo que cabe en una pantalla</cite>
+</section>
+
+<!-- ========== COUNTER ========== -->
+<section class="counter reveal">
+  <div class="counter-eyebrow">Llevo contándote en segundos</div>
+  <div class="counter-since">desde la 1:04 de la mañana del 8 de junio</div>
+  <div class="counter-grid">
+    <div class="counter-item"><div class="counter-num" id="d-days">0</div><div class="counter-label">Días</div></div>
+    <div class="counter-item"><div class="counter-num" id="d-hours">0</div><div class="counter-label">Horas</div></div>
+    <div class="counter-item"><div class="counter-num" id="d-minutes">0</div><div class="counter-label">Minutos</div></div>
+    <div class="counter-item"><div class="counter-num" id="d-seconds">0</div><div class="counter-label">Segundos</div></div>
+  </div>
+</section>
+
+<!-- ========== TIMELINE ========== -->
+<section class="timeline">
+
+
+
+  <div class="reveal">
+    <div class="section-num">— I —</div>
+    <h2 class="section-title">Cómo empezó <em>todo</em></h2>
+    <p class="section-sub">Una lista de momentos que parecen pequeños y que terminaron siendo los más importantes de mi vida.</p>
+  </div>
+
+    <div class="event reveal">
+      <div class="event-date">8 jun · 1:04 am</div>
+      <div class="event-content">
+        <h3>La primera conversación</h3>
+        <p>Jamas olvidare ese momento de valentia que tuve cuando te escribi, despues de tantas ignoradas, tuve fuerza para ser ignorado una vez más, sin saber que te quedarias esta vez y me harias el hombre mas feliz del mundo.</p>
+      </div>
+    </div>
+
+  <div class="timeline-grid">
+    <div class="event reveal">
+      <div class="event-date">9 jun . 4.02 pm</div>
+      <div class="event-content">
+        <h3>El primer día que te vi</h3>
+        <p>Como olvidar ese dia en la heladeria donde sin saberlo todo cambiaria, crei que todo se acabaria para mi cuando rompi 2 de tus
+           ganchitos, aun asi cuando mailo me hizo quedar mal no te fuiste y recuerdo ese dia como uno de los mejores.</p>
+      </div>
+    </div>
+
+    <div class="event reveal">
+      <div class="event-date">14 jun . 8.30 pm</div>
+      <div class="event-content">
+        <h3>Nuestro primer beso</h3>
+        <p>Recuerdo lo nervioso que estaba, como te tenia al frente sentada en cristo rey, mi cabeza no era mas que un torbellino de pensamientos
+          "Y si me bloquea por 3 meses, si me denuncia, si no quiere" pensaba tantas cosas que no podia ver que en realidad tu estabas mas desesperada que yo jsjsjs, ya me puse nervioso escribiendo esto, gracias por dejarme quedarme a tu lado te amo
+                </p>
+      </div>
+    </div>
+    <div class="event reveal">
+      <div class="event-date">15 jul · 12.00 am</div>
+      <div class="event-content">
+        <h3>Y sin darnos cuenta, ya lo éramos</h3>
+        <p>De esa misma conversación nació todo. Acordamos que esa sería nuestra fecha — porque antes de ese mensaje no existía un "nosotros", y después ya no había vuelta atrás.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== LETTER ========== -->
+<section class="letter-section">
+  <div class="reveal">
+    <div class="section-num">— II —</div>
+    <h2 class="section-title">La carta que <em>nunca</em> te escribí</h2>
+    <p class="section-sub">Hasta hoy.</p>
+  </div>
+  <div class="letter-container reveal">
+    <div class="letter-greeting">Mi amor, mi vida, mi niña:</div>
+    <div class="letter-body" id="letter-body"><span class="caret"></span></div>
+    <div class="letter-sign">— siempre tuyo</div>
+  </div>
+</section>
+
+<!-- ========== REASONS ========== -->
+<section class="reasons">
+  <div class="reveal">
+    <div class="section-num">— III —</div>
+    <h2 class="section-title">Por qué <em>te amo</em></h2>
+    <p class="section-sub">Una lista imposiblemente corta.</p>
+  </div>
+  <div class="reasons-grid">
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 01</span>
+      <p class="reason-text">Por cómo te ríes de mis chistes malos, incluso cuando no tienen <em>ni un poco</em> de gracia.</p>
+    </div>
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 02</span>
+      <p class="reason-text">Por cómo me miras cuando crees que no te estoy viendo. Como si yo fuera lo único importante.</p>
+    </div>
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 03</span>
+      <p class="reason-text">Por la forma en que dices <em>mi nombre</em>. Cada vez.</p>
+    </div>
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 04</span>
+      <p class="reason-text">Por cómo me haces sentir que el resto del mundo puede esperar. Y por ese rato, sólo existimos tú y yo.</p>
+    </div>
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 05</span>
+      <p class="reason-text">Por todo lo que no te has dado cuenta de que me has enseñado sobre querer bien.</p>
+    </div>
+    <div class="reason-card reveal">
+      <span class="reason-num">N° 06</span>
+      <p class="reason-text">Por quedarte. Por elegirme. Por ser <em>exactamente tú</em>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CLOSING ========== -->
+<section class="closing reveal">
+  <span class="closing-rule"></span>
+  <p class="closing-text">
+    No sé cómo se escribe el futuro,<br>
+    pero si me dejas, quiero escribirlo <em>a tu lado</em>.
+  </p>
+  <div class="closing-sign">Con todo mi corazón,</div>
+  <div class="closing-name" id="closing-name">[Tu nombre]</div>
+</section>
+
+<!-- ========== SECRET ========== -->
+<section class="secret">
+  <div class="reveal">
+    <button class="secret-orb" id="secret-btn" aria-label="Un último secreto">✦</button>
+    <p class="secret-hint">hay algo más, si te atreves a tocar</p>
+    <div class="secret-message" id="secret-message">
+      Si llegaste hasta aquí, ya sabes lo que quiero decirte sin que lo diga:<br>
+      que te elijo. Hoy, mañana y cada vez que me lo permitan.<br>
+      <span style="color: var(--ink); font-style: italic;">— Tuyo, para siempre.</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Cada pétalo que cae, cada segundo del contador, cada letra de esta página — todo, mi amor, es por ti.</p>
+  <p class="small">Septiembre · 2026</p>
+  
+</footer>
+
+<script>
+// =====================================================
+// ★ EDITA ESTOS VALORES ↓
+// =====================================================
+// Pon aquí la fecha en que se hicieron novios (YYYY-MM-DDTHH:MM:SS)
+const ANNIVERSARY_DATE = new Date('2026-06-08T01:04:00');
+
+// Tu nombre para la firma
+const YOUR_NAME = 'Jeronimo T';
+
+// Texto de la carta (puedes editarlo completo)
+const LETTER_TEXT = `No sé bien cuándo empezó esto. Pero si me obligas a poner un momento exacto, sería cuando me di cuenta de que todos mis planes a futuro tenían tu nombre en alguna parte.
+
+Desde entonces, todo es un poco más bonito. Las canciones tienen sentido, las películas duran lo que tienen que durar, y los días más largos se vuelven cortos cuando estoy contigo.
+
+Gracias por ser mi lugar favorito. Por reírte conmigo, por retarme, por enseñarme que el amor no es sólo una palabra bonita, sino algo que se construye cada día: en cada mensaje, en cada beso, en cada silencio compartido.
+
+No prometo perfección. Prometo intentarlo. Prometo quedarme. Prometo que mientras me dejes, vas a tener a alguien que te quiere con una fuerza que todavía no entiendo del todo.
+
+Te quiero hoy. Y un poquito más mañana.`;
+
+// =====================================================
+// Contador
+// =====================================================
+function pad(n) { return String(n).padStart(2, '0'); }
+function updateCounter() {
+  const now = new Date();
+  let diff = now - ANNIVERSARY_DATE;
+  if (diff < 0) diff = 0;
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff / 3600000) % 24);
+  const minutes = Math.floor((diff / 60000) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+  document.getElementById('d-days').textContent = days;
+  document.getElementById('d-hours').textContent = pad(hours);
+  document.getElementById('d-minutes').textContent = pad(minutes);
+  document.getElementById('d-seconds').textContent = pad(seconds);
+}
+updateCounter();
+setInterval(updateCounter, 1000);
+
+// =====================================================
+// Firma
+// =====================================================
+document.getElementById('closing-name').textContent = YOUR_NAME;
+
+// =====================================================
+// Letter typing effect
+// =====================================================
+const letterEl = document.getElementById('letter-body');
+let typed = 0;
+let letterStarted = false;
+
+function typeStep() {
+  if (typed <= LETTER_TEXT.length) {
+    letterEl.innerHTML = LETTER_TEXT.substring(0, typed) + '<span class="caret"></span>';
+    typed++;
+    const delay = LETTER_TEXT[typed - 1] === '\n' ? 120 : 22;
+    setTimeout(typeStep, delay);
+  } else {
+    letterEl.innerHTML = LETTER_TEXT;
+  }
+}
+
+const letterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !letterStarted) {
+      letterStarted = true;
+      setTimeout(typeStep, 400);
+      letterObserver.disconnect();
+    }
+  });
+}, { threshold: 0.25 });
+letterObserver.observe(letterEl);
+
+// =====================================================
+// Scroll reveal
+// =====================================================
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.reveal').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 4) * 0.08}s`;
+  revealObserver.observe(el);
+});
+
+// =====================================================
+// Floating petals
+// =====================================================
+const petalsBox = document.getElementById('petals');
+const petalChars = ['❀', '✿', '❁', '✦', '·', '❀', '✿'];
+const petalColors = ['#6b1d2a', '#c4888e', '#9c7841', '#c4888e'];
+
+function spawnPetal() {
+  const el = document.createElement('div');
+  el.className = 'petal';
+  el.textContent = petalChars[Math.floor(Math.random() * petalChars.length)];
+  const size = 0.7 + Math.random() * 1.3;
+  el.style.left = Math.random() * 100 + 'vw';
+  el.style.fontSize = size + 'rem';
+  el.style.color = petalColors[Math.floor(Math.random() * petalColors.length)];
+  el.style.animationDuration = (16 + Math.random() * 22) + 's';
+  el.style.opacity = (0.3 + Math.random() * 0.4).toString();
+  petalsBox.appendChild(el);
+  setTimeout(() => el.remove(), 42000);
+}
+for (let i = 0; i < 6; i++) setTimeout(spawnPetal, i * 600);
+setInterval(spawnPetal, 1800);
+
+// =====================================================
+// Secret reveal
+// =====================================================
+const secretBtn = document.getElementById('secret-btn');
+const secretMsg = document.getElementById('secret-message');
+secretBtn.addEventListener('click', () => {
+  secretBtn.style.transform = 'scale(1.15)';
+  setTimeout(() => secretBtn.style.transform = 'scale(1)', 400);
+  secretMsg.classList.add('visible');
+  secretBtn.setAttribute('aria-expanded', 'true');
+}, { once: true });
+</script>
+
+</body>
+</html>
